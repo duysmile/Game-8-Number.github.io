@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+    <script src="index.js"></script>
+    <script>
+        let goal = [];
+        for (let i = 0; i < 3; i++) {
+            goal[i] = [];
+            for(let j = 0; j < 3; j++) {
+                goal[i][j] = (i * 3 + j + 1) % 9;
+            }
+        }
+
+        let goalState = new State(goal, 2, 2);
+        var x = new Render(goalState.current);
+        let state = new State(goal, 2, 2);
+        for (let i = 0; i < 10; i++) {
+            let op = Math.floor(Math.random() * 4 );
+            let oper = new Operator(op);
+            let temp;
+            switch (op) {
+                case 0:
+                    temp = oper.up(state);
+                    break;
+                case 1:
+                    temp = oper.down(state);
+                    break;
+                case 2:
+                    temp = oper.left(state);
+                    break;
+                case 3:
+                    temp = oper.right(state);
+                    break;
+            }
+            if (temp != null){
+                state = temp;
+            }
+        }
+        var y = new Render(state.current);
+        var s = new Search(goalState, state);
+    </script>
+</body>
+</html>
