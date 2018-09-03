@@ -57,8 +57,8 @@ class Operator {
         let y = state.state.y;
         let newState = new State(state.current, x, y);
         if (y < 2){
-            newState.current[x][y] = newState.current[x][y + 1];
-            newState.current[x][y + 1] = 0;
+            newState.current[y][x] = newState.current[y + 1][x];
+            newState.current[y + 1][x] = 0;
             newState.state = {x: x, y: y + 1};
             return newState;
         }
@@ -69,32 +69,34 @@ class Operator {
         let y = state.state.y;
         let newState = new State(state.current, x, y);
         if (y > 0){
-            newState.current[x][y] = newState.current[x][y - 1];
-            newState.current[x][y - 1] = 0;
+            newState.current[y][x] = newState.current[y - 1][x];
+            newState.current[y - 1][x] = 0;
             newState.state = {x: x, y: y - 1};
             return newState;
         }
         return null;
     }
-    right(state) {
+    left(state) {
+
         let x = state.state.x;
         let y = state.state.y;
         let newState = new State(state.current, x, y);
         if (x < 2){
-            newState.current[x][y] = newState.current[x + 1][y];
-            newState.current[x + 1][y] = 0;
+            newState.current[y][x] = newState.current[y][x + 1];
+            newState.current[y][x + 1] = 0;
             newState.state = {x: x + 1, y: y};
             return newState;
         }
         return null;
     }
-    left(state) {
+    right(state) {
+
         let x = state.state.x;
         let y = state.state.y;
         let newState = new State(state.current, x, y);
         if (x > 0){
-            newState.current[x][y] = newState.current[x - 1][y];
-            newState.current[x - 1][y] = 0;
+            newState.current[y][x] = newState.current[y][x - 1];
+            newState.current[y][x - 1] = 0;
             newState.state = {x: x - 1, y: y};
             return newState;
         }
@@ -112,39 +114,43 @@ class Search {
     }
 
     search() {
-        console.log(this.goal);
         // console.log(this.current);
         // console.log(this.current.current.map((item) => {
         //     return item.join("");
         // }).join(""));
         let open = [];
+        let close = [];
         open.push(this.current);
         let op = new Operator();
         let o;
         let i =0;
-        // while (i < 10) {
-        //     i++;
+        while (i < 2) {
+            i ++;
             o = open.pop();
+            close.push(o);
             //TODO: assign closed array for o
             if (o.current.map((item) => {
                 return item.join("");
             }).join("") == this.goal) {
-                return o;
+                console.log('ok', o);
+                break;
             };
             let child = [op.up(o), op.down(o), op.left(o), op.right(o)];
             child.forEach((item) => {
                 if (item != null) {
-                    console.log(item);
                     //check if item is existed not push
-                    if (open.every((i) => {
-                        console.log('here: ', o, i, item)
+                    //TODO : fix code below
+                    if (close.every((i) => {
                         return i != item;
-                    }));
-                        // open.push(item);
+                    })) {
+                        open.push(item);
+                    };
                 }
             })
             // console.log(o);
-        // }
+        }
+        console.log(close)
+        console.log(open);
     }
 }
 
