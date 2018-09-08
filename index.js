@@ -41,6 +41,17 @@ class State {
         this.current = arr.map((item) => {
             return item.slice();
         });
+        this.parent = null;
+    }
+    setParent(state) {
+        this.parent = state;
+    }
+    print(){
+        console.log(this.parent);
+        if (this.parent != null){
+            this.print(this.parent);
+        }
+        var x = new Render(this.current);
     }
 }
 
@@ -110,7 +121,6 @@ class Search {
             return item.join("");
         }).join("");
         this.current = current;
-        this.search();
     }
 
     search() {
@@ -124,34 +134,42 @@ class Search {
         let op = new Operator();
         let o;
         let i =0;
-        while (i < 2) {
-            i ++;
-            o = open.pop();
+        while (open.length != 0) {
+            o = open.shift();
             close.push(o);
-            //TODO: assign closed array for o
             if (o.current.map((item) => {
                 return item.join("");
             }).join("") == this.goal) {
-                console.log('ok', o);
+                return o;
                 break;
             };
             let child = [op.up(o), op.down(o), op.left(o), op.right(o)];
             child.forEach((item) => {
                 if (item != null) {
                     //check if item is existed not push
-                    //TODO : fix code below
-                    if (close.every((i) => {
-                        return i != item;
-                    })) {
+                    if (!this.checkExist(item, close)) {
+                        item.setParent(o);
                         open.push(item);
                     };
                 }
-            })
-            // console.log(o);
+            });
         }
-        console.log(close)
-        console.log(open);
+        return null;
+    }
+
+    checkExist(item, close){
+        return close.every((i) => {
+            return this.equal(i.current, item.current);
+        })
+    }
+    equal(a, b){
+        let keyA = a.map((item) => {
+            return item.join("");
+        }).join("");
+        let keyB = b.map((item) => {
+            return item.join("");
+        }).join("");
+
+        return keyA == keyB;
     }
 }
-
-//TODO: function to check if state is existed in open
