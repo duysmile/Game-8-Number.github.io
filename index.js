@@ -6,20 +6,20 @@ class Render {
         this.init();
     }
 
-    replaceText (str, before, after) {
+    replaceText(str, before, after) {
         return str.replace("%" + before + "%", after);
     }
 
-    render () {
+    render() {
         let table = "<table>%rows%</table>";
         let row = "<tr>%cells%</tr>";
         let cell = "<td>%value%</td>";
-        let r ="";
+        let r = "";
         let c = "";
         for (let i = 0; i < this.x; i++) {
             c = "";
             for (let j = 0; j < this.y; j++) {
-                c += this.replaceText(cell, "value",  this.arr[i][j])
+                c += this.replaceText(cell, "value", this.arr[i][j])
             }
             r += this.replaceText(row, "cells", c);
         }
@@ -27,7 +27,7 @@ class Render {
         return t;
     }
 
-    init () {
+    init() {
         let div = document.createElement('div');
         div.innerHTML = this.render();
         document.getElementsByTagName('body')[0].appendChild(div)
@@ -37,18 +37,49 @@ class Render {
 
 class State {
     constructor(arr, x, y) {
-        this.state = {x: x,y: y};
+        this.g = 0;
+        this.state = {x: x, y: y};
         this.current = arr.map((item) => {
             return item.slice();
         });
         this.parent = null;
     }
+
+    setG(g) {
+        this.g = g;
+    }
+
     setParent(state) {
         this.parent = state;
     }
-    print(){
-        console.log(this.parent);
-        if (this.parent != null){
+
+    setH(goal) {
+        let h = 0;
+        for (let y = 0; y < this.current.length; y++) {
+            for (let x = 0; x < this.current[y].length; x++) {
+                if (this.current[y][x] == goal[y][x] && this.current[y][x] != 0) {
+                    continue;
+                }
+                let point = this.find(this.current[y][x], goal);
+                h += Math.abs(x - point.x) + Math.abs(y - point.y);
+            }
+        }
+        this.h = h;
+    }
+
+    find(point, goal) {
+        for (let y = 0; y < goal.length; y++) {
+            for (let x = 0; x < goal[y].length; x++) {
+                if (point == goal[y][x]) {
+                    return {x: x, y: y};
+                }
+            }
+        }
+        return {x: 0, y: 0};
+    }
+
+    print() {
+        if (this.parent != null) {
             this.print(this.parent);
         }
         var x = new Render(this.current);
@@ -63,11 +94,12 @@ class Operator {
         //3: right
         this.value = operator;
     }
+
     up(state) {
         let x = state.state.x;
         let y = state.state.y;
         let newState = new State(state.current, x, y);
-        if (y < 2){
+        if (y < 2) {
             newState.current[y][x] = newState.current[y + 1][x];
             newState.current[y + 1][x] = 0;
             newState.state = {x: x, y: y + 1};
@@ -75,11 +107,12 @@ class Operator {
         }
         return null;
     }
+
     down(state) {
         let x = state.state.x;
         let y = state.state.y;
         let newState = new State(state.current, x, y);
-        if (y > 0){
+        if (y > 0) {
             newState.current[y][x] = newState.current[y - 1][x];
             newState.current[y - 1][x] = 0;
             newState.state = {x: x, y: y - 1};
@@ -87,12 +120,13 @@ class Operator {
         }
         return null;
     }
+
     left(state) {
 
         let x = state.state.x;
         let y = state.state.y;
         let newState = new State(state.current, x, y);
-        if (x < 2){
+        if (x < 2) {
             newState.current[y][x] = newState.current[y][x + 1];
             newState.current[y][x + 1] = 0;
             newState.state = {x: x + 1, y: y};
@@ -100,12 +134,13 @@ class Operator {
         }
         return null;
     }
+
     right(state) {
 
         let x = state.state.x;
         let y = state.state.y;
         let newState = new State(state.current, x, y);
-        if (x > 0){
+        if (x > 0) {
             newState.current[y][x] = newState.current[y][x - 1];
             newState.current[y][x - 1] = 0;
             newState.state = {x: x - 1, y: y};
@@ -116,60 +151,91 @@ class Operator {
 }
 
 class Search {
-    constructor (goal, current) {
+    constructor(goal, current) {
         this.goal = goal.current.map((item) => {
             return item.join("");
         }).join("");
         this.current = current;
+        this.current.setH(goal.current);
     }
 
-    search() {
-        // console.log(this.current);
-        // console.log(this.current.current.map((item) => {
-        //     return item.join("");
-        // }).join(""));
-        let open = [];
-        let close = [];
+    search(goal) {
+        let open = new PriorityQueue([], (a, b) => {
+            return (a.g + a.h) - (b.g + b.h);
+        });
+        let close = {};
         open.push(this.current);
         let op = new Operator();
         let o;
-        let i =0;
+        // let count = 0;
         while (open.length != 0) {
+            // count++;
+            // console.log(count);
             o = open.shift();
-            close.push(o);
+            close[this.pushKey(o.current)] = o;
             if (o.current.map((item) => {
                 return item.join("");
             }).join("") == this.goal) {
                 return o;
                 break;
-            };
+            }
             let child = [op.up(o), op.down(o), op.left(o), op.right(o)];
             child.forEach((item) => {
                 if (item != null) {
                     //check if item is existed not push
-                    if (!this.checkExist(item, close)) {
+                    if (!this.checkExist(this.pushKey(item.current), close)) {
                         item.setParent(o);
+                        item.setG(item.parent.g + 1);
+                        item.setH(goal);
                         open.push(item);
-                    };
+                    }
                 }
             });
         }
         return null;
     }
 
-    checkExist(item, close){
-        return close.every((i) => {
-            return this.equal(i.current, item.current);
-        })
+    checkExist(item, close) {
+        return close[item] != null;
     }
-    equal(a, b){
-        let keyA = a.map((item) => {
-            return item.join("");
-        }).join("");
-        let keyB = b.map((item) => {
-            return item.join("");
-        }).join("");
 
-        return keyA == keyB;
+    pushKey(arr) {
+        return arr.reduce((acc, curr) => {
+            return acc + curr;
+        }, "")
+    }
+}
+
+class PriorityQueue {
+    constructor(array, comparator) {
+        let arr = array.slice().sort(comparator);
+        this.arr = arr ? arr : [];
+        this.comparator = comparator;
+    }
+
+    push(item) {
+        if (this.arr.length == 0) {
+            this.arr[0] = item;
+            return;
+        }
+        let i = 0;
+        for (i; i < this.arr.length; i++) {
+            if (!this.comparator(item, this.arr[i])) {
+                break;
+            }
+        }
+        this.arr.splice(i, 0, item);
+    }
+
+    pop() {
+        return this.arr.pop();
+    }
+
+    shift() {
+        return this.arr.shift();
+    }
+
+    unshift() {
+        return this.arr.unshift();
     }
 }

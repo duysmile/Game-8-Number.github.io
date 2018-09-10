@@ -43,15 +43,15 @@
         }
         var y = new Render(state.current);
         var s = new Search(goalState, state);
-
+        state.setH(goal);
+        console.log(state.h)
         function print(item) {
             if (item.parent != null) {
                 print(item.parent);
             }
             return new Render(item.current)
         }
-        console.log(s.search());
-        print(s.search());
+        print(s.search(goal));
     </script>
 </body>
 </html>
