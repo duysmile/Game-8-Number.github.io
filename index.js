@@ -57,13 +57,14 @@ class State {
         let h = 0;
         for (let y = 0; y < this.current.length; y++) {
             for (let x = 0; x < this.current[y].length; x++) {
-                if (this.current[y][x] == goal[y][x] && this.current[y][x] != 0) {
+                if (this.current[y][x] == goal[y][x] || this.current[y][x] == 0) {
                     continue;
                 }
                 let point = this.find(this.current[y][x], goal);
                 h += Math.abs(x - point.x) + Math.abs(y - point.y);
             }
         }
+        // console.log(this.current, h);
         this.h = h;
     }
 
@@ -161,7 +162,7 @@ class Search {
 
     search(goal) {
         let open = new PriorityQueue([], (a, b) => {
-            return (a.g + a.h) - (b.g + b.h);
+            return (a.g + a.h) > (b.g + b.h);
         });
         let close = {};
         open.push(this.current);
@@ -172,6 +173,7 @@ class Search {
             // count++;
             // console.log(count);
             o = open.shift();
+            // console.log(o.h)
             close[this.pushKey(o.current)] = o;
             if (o.current.map((item) => {
                 return item.join("");

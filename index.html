@@ -19,7 +19,7 @@
         let goalState = new State(goal, 2, 2);
         var x = new Render(goalState.current);
         let state = new State(goal, 2, 2);
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 10000; i++) {
             let op = Math.floor(Math.random() * 4 );
             let oper = new Operator(op);
             let temp;
@@ -44,7 +44,6 @@
         var y = new Render(state.current);
         var s = new Search(goalState, state);
         state.setH(goal);
-        console.log(state.h)
         function print(item) {
             if (item.parent != null) {
                 print(item.parent);
