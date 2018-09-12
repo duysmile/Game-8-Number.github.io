@@ -173,7 +173,6 @@ class Search {
             count++;
             console.log(count);
             o = open.shift();
-            // console.log(o.h)
             close[this.pushKey(o.current)] = o;
             if (o.current.map((item) => {
                 return item.join("");
@@ -200,17 +199,19 @@ class Search {
         return null;
     }
 
-    checkExist(item, close) {
+    checkExist(item, close)
+    {
         return close[item] != null;
     }
 
-    pushKey(arr) {
+    pushKey(arr)
+    {
         return arr.reduce((acc, curr) => {
             return acc + curr;
         }, "")
     }
-}
 
+}
 class PriorityQueue {
     constructor(array, comparator) {
         let arr = array.slice().sort(comparator);
